@@ -4,10 +4,12 @@ import { Coin } from '@/types';
 
 interface PortfolioProps {
   coins: Coin[];
+  cashBalance?: number;
 }
 
-export default function Portfolio({ coins }: PortfolioProps) {
+export default function Portfolio({ coins, cashBalance = 0 }: PortfolioProps) {
   const totalValue = coins.reduce((sum, coin) => sum + coin.value, 0);
+  const totalPortfolioValue = totalValue + cashBalance;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
@@ -16,9 +18,25 @@ export default function Portfolio({ coins }: PortfolioProps) {
           Current Portfolio
         </h2>
         <div className="text-3xl font-bold text-primary">
-          ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          ${totalPortfolioValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400">Total Value</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Total Portfolio Value</p>
+        {cashBalance > 0 && (
+          <div className="mt-3 flex gap-6">
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Holdings</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Cash</p>
+              <p className="text-lg font-semibold text-green-600 dark:text-green-400">
+                ${cashBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="overflow-x-auto">

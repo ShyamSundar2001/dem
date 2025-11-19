@@ -5,18 +5,23 @@ A modern, responsive cryptocurrency portfolio tracker built with Next.js, TypeSc
 ## Features
 
 - **Portfolio Overview**: View all your cryptocurrency holdings with real-time values
+  - Cash balance display
+  - Total portfolio value (holdings + cash)
   - Coin names and symbols
   - Quantity held
   - Current price
   - Total value (price × quantity)
 
-- **Transaction History**: Display last 100 transactions
+- **Transaction History**: Complete transaction history from API
+  - Transaction ID
   - Timestamp of each trade
   - Coin name and symbol
   - Quantity traded
   - Price at which trade was placed
   - Buy/Sell indicator
   - Total transaction value
+  - Transaction fees
+  - Transaction status
 
 - **Performance Chart**: Portfolio performance visualization
   - Indexed to 100 baseline
@@ -92,13 +97,15 @@ dem/
 ├── app/
 │   ├── globals.css          # Global styles
 │   ├── layout.tsx            # Root layout
-│   └── page.tsx              # Main page
+│   └── page.tsx              # Main page with API integration
 ├── components/
-│   ├── Portfolio.tsx         # Portfolio display component
-│   ├── Transactions.tsx      # Transaction history table
+│   ├── Portfolio.tsx         # Portfolio display component with cash balance
+│   ├── Transactions.tsx      # Transaction history table with fees & status
 │   └── PerformanceChart.tsx  # Performance chart
 ├── lib/
-│   └── data.ts               # Sample data and data generation
+│   ├── api.ts                # API service for Sentient API integration
+│   ├── data.ts               # Sample data (used for charts only)
+│   └── dataTransformers.ts   # Transform API responses to UI models
 ├── types/
 │   └── index.ts              # TypeScript type definitions
 ├── package.json
@@ -107,16 +114,40 @@ dem/
 └── vercel.json               # Vercel configuration
 ```
 
+## API Integration
+
+The application is integrated with the Sentient API for real-time portfolio data:
+
+### API Endpoints
+
+1. **Portfolio Balance** (`/rpc/get_portfolio`)
+   - Fetches current cash balance
+   - Returns: `{ id, cash_balance }`
+
+2. **Holdings** (`/rpc/get_holdings_aggregated`)
+   - Fetches aggregated cryptocurrency holdings
+   - Returns: `{ coin, total_quantity, avg_purchase_cost, total_invested, ... }`
+
+3. **Transactions** (`/rpc/get_transactions`)
+   - Fetches complete transaction history
+   - Returns: `{ id, coin, type, quantity, price, date, total_amount, fees, status }`
+
+### API Configuration
+
+API credentials and base URL are configured in `/lib/api.ts`. The application:
+- Fetches data from all three endpoints in parallel for optimal performance
+- Transforms API responses to match UI component interfaces
+- Updates data automatically every 10 minutes
+- Includes error handling and loading states
+
+### Chart Data
+
+Currently, the performance chart uses dummy/mock data for demonstration. To integrate real chart data:
+- Update the `fetchData` function in `app/page.tsx`
+- Replace `performanceData` from `/lib/data.ts` with API data
+- Calculate portfolio value over time based on historical holdings and prices
+
 ## Customization
-
-### Adding Real API Integration
-
-The current implementation uses sample data. To integrate with a real cryptocurrency API:
-
-1. Create an API route in `app/api/`
-2. Update the data fetching logic in `app/page.tsx`
-3. Add environment variables for API keys
-4. Set up periodic data refresh using Next.js API routes or server actions
 
 ### Modifying Update Interval
 

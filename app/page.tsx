@@ -9,6 +9,7 @@ import { performanceData } from '@/lib/data';
 import { Coin, Transaction, PortfolioDataPoint, Portfolio as PortfolioType } from '@/types';
 import { getPortfolio, getHoldingsAggregated, getTransactions } from '@/lib/api';
 import { transformHoldingsToCoins, transformApiTransactions } from '@/lib/dataTransformers';
+import { logger } from '@/lib/logger';
 
 export default function Home() {
   const [portfolio, setPortfolio] = useState<Coin[]>([]);
@@ -22,33 +23,62 @@ export default function Home() {
 
   // Fetch data from API
   const fetchData = async () => {
+    logger.info('=== Starting data fetch cycle ===');
+    const startTime = performance.now();
+
     try {
       setLoading(true);
       setError(null);
 
       // Fetch all data in parallel
+      logger.info('Fetching all API endpoints in parallel');
       const [portfolioResponse, holdingsResponse, transactionsResponse] = await Promise.all([
         getPortfolio(),
         getHoldingsAggregated(),
         getTransactions(),
       ]);
 
+      logger.info('All API calls completed', {
+        portfolioRecords: portfolioResponse.length,
+        holdingsRecords: holdingsResponse.length,
+        transactionRecords: transactionsResponse.length,
+      });
+
       // Update cash balance
       if (portfolioResponse && portfolioResponse.length > 0) {
-        setCashBalance(portfolioResponse[0].cash_balance);
+        const newCashBalance = portfolioResponse[0].cash_balance;
+        logger.info('Setting cash balance', { cashBalance: newCashBalance });
+        setCashBalance(newCashBalance);
       }
 
       // Transform and update holdings
+      logger.info('Transforming holdings to coins');
       const coins = await transformHoldingsToCoins(holdingsResponse);
+      logger.info('Holdings transformation complete', { coinCount: coins.length });
       setPortfolio(coins);
 
       // Transform and update transactions
+      logger.info('Transforming transactions');
       const transformedTxns = transformApiTransactions(transactionsResponse);
+      logger.info('Transactions transformation complete', { transactionCount: transformedTxns.length });
       setTxns(transformedTxns);
 
+      const duration = performance.now() - startTime;
       setLastUpdate(new Date());
+      logger.info('=== Data fetch cycle completed successfully ===', {
+        totalDurationMs: duration.toFixed(2),
+        summary: {
+          coins: coins.length,
+          transactions: transformedTxns.length,
+          cashBalance,
+        },
+      });
     } catch (err) {
-      console.error('Error fetching data:', err);
+      const duration = performance.now() - startTime;
+      logger.error('=== Data fetch cycle failed ===', {
+        error: err instanceof Error ? err.message : String(err),
+        durationMs: duration.toFixed(2),
+      });
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
       setLoading(false);
@@ -57,25 +87,34 @@ export default function Home() {
 
   // Initial data fetch and periodic updates
   useEffect(() => {
+    logger.info('Home component mounted - initializing data fetch');
     setIsMounted(true);
     fetchData();
 
     // Refresh data every 10 minutes
     const interval = setInterval(() => {
+      logger.info('Refresh interval triggered - refetching data', {
+        intervalMinutes: 10,
+      });
       fetchData();
 
       // Update performance chart with dummy data
       setPerformance(prev => {
         const lastValue = prev[prev.length - 1]?.value || 100;
         const newValue = lastValue + (Math.random() - 0.48) * 2;
-        return [...prev, {
+        const newPoint = {
           timestamp: new Date(),
           value: Math.max(80, Math.min(140, newValue))
-        }];
+        };
+        logger.debug('Performance chart updated', { newPoint });
+        return [...prev, newPoint];
       });
     }, 10 * 60 * 1000); // 10 minutes in milliseconds
 
-    return () => clearInterval(interval);
+    return () => {
+      logger.info('Home component unmounting - cleaning up interval');
+      clearInterval(interval);
+    };
   }, []);
 
   return (

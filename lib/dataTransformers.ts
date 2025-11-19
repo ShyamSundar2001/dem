@@ -4,6 +4,7 @@
 
 import { Coin, Transaction } from '@/types';
 import { HoldingResponse, TransactionResponse, getCurrentPrice } from './api';
+import { logger } from './logger';
 
 /**
  * Get full coin name from symbol
@@ -22,31 +23,59 @@ function getCoinName(symbol: string): string {
     ATOM: 'Cosmos',
   };
 
-  return coinNames[symbol] || symbol;
+  const name = coinNames[symbol] || symbol;
+  if (!coinNames[symbol]) {
+    logger.warn('Coin name mapping not found', { symbol, fallbackName: name });
+  }
+  return name;
 }
 
 /**
  * Transform HoldingResponse to Coin interface
  */
 export async function transformHoldingToCoin(holding: HoldingResponse): Promise<Coin> {
+  logger.debug('Transforming holding to coin', { symbol: holding.coin, quantity: holding.total_quantity });
+
   const currentPrice = await getCurrentPrice(holding.coin);
   const value = holding.total_quantity * currentPrice;
 
-  return {
+  const coin = {
     name: getCoinName(holding.coin),
     symbol: holding.coin,
     quantity: holding.total_quantity,
     currentPrice,
     value,
   };
+
+  logger.debug('Holding transformed', {
+    symbol: coin.symbol,
+    name: coin.name,
+    quantity: coin.quantity,
+    price: coin.currentPrice,
+    value: coin.value,
+  });
+
+  return coin;
 }
 
 /**
  * Transform multiple holdings to coins
  */
 export async function transformHoldingsToCoins(holdings: HoldingResponse[]): Promise<Coin[]> {
+  logger.info('Starting holdings transformation', { holdingCount: holdings.length });
+  const startTime = performance.now();
+
   const coinPromises = holdings.map(holding => transformHoldingToCoin(holding));
-  return Promise.all(coinPromises);
+  const coins = await Promise.all(coinPromises);
+
+  const duration = performance.now() - startTime;
+  logger.info('Holdings transformation completed', {
+    inputCount: holdings.length,
+    outputCount: coins.length,
+    durationMs: duration.toFixed(2),
+  });
+
+  return coins;
 }
 
 /**
@@ -71,5 +100,17 @@ export function transformApiTransaction(apiTxn: TransactionResponse): Transactio
  * Transform multiple transactions
  */
 export function transformApiTransactions(apiTxns: TransactionResponse[]): Transaction[] {
-  return apiTxns.map(transformApiTransaction);
+  logger.info('Starting transactions transformation', { transactionCount: apiTxns.length });
+  const startTime = performance.now();
+
+  const transactions = apiTxns.map(transformApiTransaction);
+
+  const duration = performance.now() - startTime;
+  logger.info('Transactions transformation completed', {
+    inputCount: apiTxns.length,
+    outputCount: transactions.length,
+    durationMs: duration.toFixed(2),
+  });
+
+  return transactions;
 }

@@ -45,6 +45,7 @@ export async function getPortfolio(): Promise<PortfolioResponse[]> {
     const response = await fetch(`${API_BASE_URL}/get_portfolio`, {
       method: 'POST',
       headers: API_HEADERS,
+      body: JSON.stringify({}),
     });
 
     if (!response.ok) {
@@ -66,6 +67,7 @@ export async function getHoldingsAggregated(): Promise<HoldingResponse[]> {
     const response = await fetch(`${API_BASE_URL}/get_holdings_aggregated`, {
       method: 'POST',
       headers: API_HEADERS,
+      body: JSON.stringify({}),
     });
 
     if (!response.ok) {
@@ -87,6 +89,7 @@ export async function getTransactions(): Promise<TransactionResponse[]> {
     const response = await fetch(`${API_BASE_URL}/get_transactions`, {
       method: 'POST',
       headers: API_HEADERS,
+      body: JSON.stringify({}),
     });
 
     if (!response.ok) {

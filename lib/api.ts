@@ -1,14 +1,14 @@
 /**
  * API service for fetching portfolio data from Sentient API
+ * Uses Next.js API routes as a proxy to avoid CORS issues
  */
 
 import { logger } from './logger';
 
-const API_BASE_URL = 'https://sent-api.dev.sentient.xyz/rpc';
+// Use local API routes that proxy to the external API
+const API_BASE_URL = '/api';
 const API_HEADERS = {
-  'x-custom-auth': 'd9ab6590f8a7b4e6d0c67db00b5f7e5cbfd3179fbbfdd3432a44d604fa10b7a3',
   'Content-Type': 'application/json',
-  'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QHNlbnRpZW50LmludGVybmFsIiwidXNlciI6InRlc3RAc2VudGllbnQuaW50ZXJuYWwiLCJyb2xlIjoic2VudGFwcCIsImV4cCI6MTc2MzYzNTg2OH0.OxZ6A97W3aksuyn7PDUXnoj5bVYzzcwKFQs4vMn_oyc',
 };
 
 // API Response Interfaces
@@ -43,7 +43,7 @@ export interface TransactionResponse {
  * Fetch portfolio data (cash balance)
  */
 export async function getPortfolio(): Promise<PortfolioResponse[]> {
-  const endpoint = `${API_BASE_URL}/get_portfolio`;
+  const endpoint = `${API_BASE_URL}/portfolio`;
   logger.info('API Request: getPortfolio', { endpoint });
 
   const startTime = performance.now();
@@ -92,7 +92,7 @@ export async function getPortfolio(): Promise<PortfolioResponse[]> {
  * Fetch aggregated holdings
  */
 export async function getHoldingsAggregated(): Promise<HoldingResponse[]> {
-  const endpoint = `${API_BASE_URL}/get_holdings_aggregated`;
+  const endpoint = `${API_BASE_URL}/holdings`;
   logger.info('API Request: getHoldingsAggregated', { endpoint });
 
   const startTime = performance.now();
@@ -141,7 +141,7 @@ export async function getHoldingsAggregated(): Promise<HoldingResponse[]> {
  * Fetch transactions
  */
 export async function getTransactions(): Promise<TransactionResponse[]> {
-  const endpoint = `${API_BASE_URL}/get_transactions`;
+  const endpoint = `${API_BASE_URL}/transactions`;
   logger.info('API Request: getTransactions', { endpoint });
 
   const startTime = performance.now();

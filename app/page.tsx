@@ -15,7 +15,7 @@ export default function Home() {
   const [portfolio, setPortfolio] = useState<Coin[]>([]);
   const [cashBalance, setCashBalance] = useState<number>(0);
   const [txns, setTxns] = useState<Transaction[]>([]);
-  const [performance, setPerformance] = useState<PortfolioDataPoint[]>(performanceData);
+  const [performanceHistory, setPerformanceHistory] = useState<PortfolioDataPoint[]>(performanceData);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [isMounted, setIsMounted] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -99,7 +99,7 @@ export default function Home() {
       fetchData();
 
       // Update performance chart with dummy data
-      setPerformance(prev => {
+      setPerformanceHistory(prev => {
         const lastValue = prev[prev.length - 1]?.value || 100;
         const newValue = lastValue + (Math.random() - 0.48) * 2;
         const newPoint = {
@@ -156,7 +156,7 @@ export default function Home() {
                 <Portfolio coins={portfolio} cashBalance={cashBalance} />
 
                 {/* Performance Chart */}
-                <PerformanceChart data={performance} />
+                <PerformanceChart data={performanceHistory} />
 
                 {/* Transactions Table */}
                 <Transactions transactions={txns} />

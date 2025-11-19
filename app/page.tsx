@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { format } from 'date-fns';
 import Portfolio from '@/components/Portfolio';
 import Transactions from '@/components/Transactions';
 import PerformanceChart from '@/components/PerformanceChart';
@@ -12,9 +13,11 @@ export default function Home() {
   const [txns, setTxns] = useState<Transaction[]>(transactions);
   const [performance, setPerformance] = useState<PortfolioDataPoint[]>(performanceData);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [isMounted, setIsMounted] = useState(false);
 
   // Simulate real-time updates every 10 minutes
   useEffect(() => {
+    setIsMounted(true);
     const interval = setInterval(() => {
       // In a real application, you would fetch data from an API here
       // For now, we'll just update the timestamp and slightly modify prices
@@ -48,19 +51,23 @@ export default function Home() {
             Crypto Portfolio Tracker
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Last updated: {lastUpdate.toLocaleString()}
+            Last updated: {isMounted ? format(lastUpdate, 'MMM dd, yyyy HH:mm:ss') : '—'}
           </p>
         </div>
 
         <div className="space-y-8">
-          {/* Portfolio Overview */}
-          <Portfolio coins={portfolio} />
+          {isMounted && (
+            <>
+              {/* Portfolio Overview */}
+              <Portfolio coins={portfolio} />
 
-          {/* Performance Chart */}
-          <PerformanceChart data={performance} />
+              {/* Performance Chart */}
+              <PerformanceChart data={performance} />
 
-          {/* Transactions Table */}
-          <Transactions transactions={txns} />
+              {/* Transactions Table */}
+              <Transactions transactions={txns} />
+            </>
+          )}
         </div>
 
         <footer className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">

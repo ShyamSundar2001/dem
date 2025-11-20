@@ -1,17 +1,21 @@
 import { NextResponse } from 'next/server';
+import { generateJWTToken } from '@/lib/jwt';
 
 const API_BASE_URL = 'https://sent-api.dev.sentient.xyz/rpc';
-const API_HEADERS = {
-  'x-custom-auth': 'd9ab6590f8a7b4e6d0c67db00b5f7e5cbfd3179fbbfdd3432a44d604fa10b7a3',
-  'Content-Type': 'application/json',
-  'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QHNlbnRpZW50LmludGVybmFsIiwidXNlciI6InRlc3RAc2VudGllbnQuaW50ZXJuYWwiLCJyb2xlIjoic2VudGFwcCIsImV4cCI6MTc2MzYzNTg2OH0.OxZ6A97W3aksuyn7PDUXnoj5bVYzzcwKFQs4vMn_oyc',
-};
+
+function getAPIHeaders() {
+  return {
+    'x-custom-auth': 'd9ab6590f8a7b4e6d0c67db00b5f7e5cbfd3179fbbfdd3432a44d604fa10b7a3',
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${generateJWTToken()}`,
+  };
+}
 
 export async function POST() {
   try {
     const response = await fetch(`${API_BASE_URL}/get_transactions`, {
       method: 'POST',
-      headers: API_HEADERS,
+      headers: getAPIHeaders(),
       body: JSON.stringify({}),
     });
 
